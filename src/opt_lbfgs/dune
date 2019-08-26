@@ -1,0 +1,4 @@
+(library
+ (name owl_opt_lbfgs)
+ (public_name owl-opt-lbfgs)
+ (libraries owl lbfgs owl-opt))
