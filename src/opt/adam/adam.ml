@@ -1,4 +1,5 @@
-module Make (AD: Owl_algodiff_generic_sig.Sig with type A.elt = float) (P : Prms.PT) = struct
+module Make (AD : Owl_algodiff_generic_sig.Sig with type A.elt = float) (P : Prms.PT) =
+struct
   type fv = AD.t
   type prm = AD.t
   type prms = prm P.t
@@ -87,10 +88,8 @@ module Make (AD: Owl_algodiff_generic_sig.Sig with type A.elt = float) (P : Prms
               let v = AD.Maths.((beta2 * x.v) + (beta2_ * sqr g)) in
               let p =
                 match s.lr with
-                | Fix lr ->
-                  update (AD.pack_flt lr) p m v eps |> AD.primal
-                | Ada h ->
-                  update (AD.pack_flt (h s.k)) p m v eps |> AD.primal
+                | Fix lr -> update (AD.pack_flt lr) p m v eps |> AD.primal
+                | Ada h -> update (AD.pack_flt (h s.k)) p m v eps |> AD.primal
               in
               { p; m; v })
             xs

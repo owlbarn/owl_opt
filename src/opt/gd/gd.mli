@@ -1,6 +1,6 @@
 module Make (AD : Owl_algodiff_generic_sig.Sig with type A.elt = float) (P : Prms.PT) : sig
-type prm = AD.t
-type fv = AD.t
+  type prm = AD.t
+  type fv = AD.t
   type prms = prm P.t
 
   type lr =

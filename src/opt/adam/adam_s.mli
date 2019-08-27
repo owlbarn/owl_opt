@@ -30,4 +30,4 @@ module Make (P : Prms.PT) : sig
   val stop : state -> bool
   val min : ?stop:stop -> state -> state
   val max : ?stop:stop -> state -> state
-end 
+end
