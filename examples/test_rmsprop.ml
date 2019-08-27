@@ -9,7 +9,7 @@ module P = struct
 end
 
 open P
-module O = Owl_opt.Rmsprop.Make (P)
+module O = Owl_opt.D.Rmsprop.Make (P)
 
 let () =
   let x = Algodiff.D.Mat.gaussian 3 1 in

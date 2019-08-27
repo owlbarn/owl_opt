@@ -1,8 +1,6 @@
-open Owl
-
 module Make (P : Prms.PT) : sig
-  type fv = Algodiff.D.t
-  type prm = Algodiff.D.t
+  type fv = Owl.Algodiff.S.t
+  type prm = Owl.Algodiff.S.t
   type prms = prm P.t
 
   type lr =
@@ -22,4 +20,4 @@ module Make (P : Prms.PT) : sig
   val stop : state -> bool
   val min : ?stop:stop -> state -> state
   val max : ?stop:stop -> state -> state
-end
+end 

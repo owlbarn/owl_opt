@@ -1,8 +1,6 @@
-open Owl
-
-module Make (P : Prms.PT) : sig
-  type fv = Algodiff.D.t
-  type prm = Algodiff.D.t
+module Make (AD: Owl_algodiff_generic_sig.Sig with type A.elt = float) (P : Prms.PT) : sig
+  type fv = AD.t
+  type prm = AD.t
   type prms = prm P.t
 
   type lr =
@@ -18,17 +16,7 @@ module Make (P : Prms.PT) : sig
   val prms : state -> prms
   val f : state -> f
   val fv : state -> float
-
-  val init
-    :  ?beta1:float
-    -> ?beta2:float
-    -> ?eps:float
-    -> prms0:prms
-    -> f:f
-    -> lr:lr
-    -> unit
-    -> state
-
+  val init : ?beta:float -> ?eps:float -> prms0:prms -> f:f -> lr:lr -> unit -> state
   val stop : state -> bool
   val min : ?stop:stop -> state -> state
   val max : ?stop:stop -> state -> state

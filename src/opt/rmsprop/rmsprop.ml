@@ -1,13 +1,12 @@
-open Owl
-
-module Make (P : Prms.PT) = struct
-  type fv = Algodiff.D.t
-  type prm = Algodiff.D.t
+module Make (AD : Owl_algodiff_generic_sig.Sig with type A.elt = float) (P : Prms.PT) =
+struct
+  type fv = AD.t
+  type prm = AD.t
   type prms = prm P.t
 
   type x =
-    { p : Algodiff.D.t
-    ; v : Algodiff.D.t
+    { p : AD.t
+    ; v : AD.t
     }
 
   type xs = x P.t
@@ -37,19 +36,20 @@ module Make (P : Prms.PT) = struct
   let fv s = s.fv
 
   let init ?(beta = 0.9) ?(eps = 1E-8) ~prms0 ~f ~lr () =
-    let fv = Algodiff.D.unpack_flt (f prms0) in
+    let fv = AD.unpack_flt (f prms0) in
     let xs =
       P.map
         ~f:(fun p ->
-          let v = Algodiff.D.(zero (primal p)) in
+          let v = AD.copy_primal' p in
+          AD.Mat.reset v;
           { p; v })
         prms0
     in
     { xs; fv; f; lr; k = 0; beta; eps }
 
 
-  let min_update lr x g v eps = Algodiff.D.Maths.(x - (lr * g / (sqrt v + eps)))
-  let max_update lr x g v eps = Algodiff.D.Maths.(x + (lr * g / (sqrt v + eps)))
+  let min_update lr x g v eps = AD.Maths.(x - (lr * g / (sqrt v + eps)))
+  let max_update lr x g v eps = AD.Maths.(x + (lr * g / (sqrt v + eps)))
 
   let stop s =
     if s.k mod 10 = 0 then Printf.printf "\rstep: %i | loss: %4.9f%!" s.k s.fv;
@@ -57,36 +57,34 @@ module Make (P : Prms.PT) = struct
 
 
   let optimise update ?(stop = stop) s =
-    let beta = Algodiff.D.(F s.beta) in
-    let beta_ = Algodiff.D.(Maths.(F 1. - beta)) in
-    let eps = Algodiff.D.(F s.eps) in
+    let beta = AD.(F s.beta) in
+    let beta_ = AD.(Maths.(F 1. - beta)) in
+    let eps = AD.(F s.eps) in
     let rec run s =
       if stop s
       then s
       else (
-        let t = Algodiff.D.tag () in
+        let t = AD.tag () in
         let xs =
           P.map
             ~f:(fun x ->
-              let p = Algodiff.D.make_reverse x.p t in
+              let p = AD.make_reverse x.p t in
               { x with p })
             s.xs
         in
         let l = s.f (P.map ~f:(fun x -> x.p) xs) in
-        Algodiff.D.(reverse_prop (F 1.) l);
-        let fv = Algodiff.D.unpack_flt l in
+        AD.(reverse_prop (F 1.) l);
+        let fv = AD.unpack_flt l in
         let xs =
           P.map
             ~f:(fun x ->
-              let p = Algodiff.D.primal x.p in
-              let g = Algodiff.D.adjval x.p in
-              let v = Algodiff.D.Maths.((beta * x.v) + (beta_ * sqr g)) in
+              let p = AD.primal x.p in
+              let g = AD.adjval x.p in
+              let v = AD.Maths.((beta * x.v) + (beta_ * sqr g)) in
               let p =
                 match s.lr with
-                | Fix lr ->
-                  update (Algodiff.D.pack_flt lr) p g v eps |> Algodiff.D.primal
-                | Ada h ->
-                  update (Algodiff.D.pack_flt (h s.k)) p g v eps |> Algodiff.D.primal
+                | Fix lr -> update (AD.pack_flt lr) p g v eps |> AD.primal
+                | Ada h -> update (AD.pack_flt (h s.k)) p g v eps |> AD.primal
               in
               { p; v })
             xs

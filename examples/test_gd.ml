@@ -8,7 +8,7 @@ module P = struct
   [@@deriving prms]
 end
 
-module O = Owl_opt.Gd.Make (P)
+module O = Owl_opt.D.Gd.Make (P)
 open P
 
 let () =
