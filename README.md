@@ -10,9 +10,9 @@ $ dune build @install
 $ dune install
 ```
 
-## Examples 
+## Tutorial
 
-The following code fragement solves a standard linear regression problem: find paramters `a` and `b` that minimises the l2 loss `sqrt((y - (a*x + b))^2)`. 
+The following code fragement solves a standard linear regression problem: find paramters `a` and `b` that minimises the l2 loss `sqrt((y-(a*x+b))^2)`. 
 The optimisation is carried out using Adam with hyperparameters `beta1=0.99` and `beta2=0.999`.
 
 ```ocaml
