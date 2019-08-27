@@ -12,6 +12,40 @@ $ dune install
 
 ## Examples 
 
+The following code fragement solves a standard linear regression problem: find paramters `a` and `b` that minimises the l2 loss `sqrt((y - (a*x + b))^2)`. 
+The optimisation is carried out using Adam with hyperparameters `beta1=0.99` and `beta2=0.999`.
+
+```ocaml
+module Prms = struct
+   type 'a t = {a: 'a; b: 'a} [@@deriving prms]
+end
+
+(* make an Adam optimisation module for the parameter definition Prms *)
+module O = Owl_opt.D.Adam.Make (Prms)
+
+(* define the objective function *)
+let f prms = Owl.Algodiff.D.Maths.(l2norm' (y - ((prms.a *@ x) + prms.b))) 
+
+(* define initial parameters *)
+let prms0 = {a = Owl.Algodiff.D.Mat.gaussian 5 5; b = Owl.Algodiff.D.gaussian 5 1} 
+
+(* initialise an optimisation session *)
+let s0 = O.init ~beta1:0.99 ~beta2:0.999 ~prms0 ~f () 
+
+(* define stopping criteria: stop when function value is smaller than 1E-4 *)
+let stop s = O.(fv s) < 1E-4
+
+(* minimise objective function f *)
+let s = O.min ~stop f
+
+(* final objective function value *)
+let c = O.fv s
+
+(* final prms *)
+let prms = O.prms s
+```
+
+See `examples/test_adam.ml` for more details:
 ```sh
 $ dune exec examples/test_adam.exe
 step: 7670 | loss: 0.003270402
