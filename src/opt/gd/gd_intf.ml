@@ -29,7 +29,7 @@ module type Sig = sig
   (** [f s] returns the objective function of state [s] *)
   val f : state -> f
 
-  (** [f s] returns the objective function value of state [s] *)
+  (** [fv s] returns the objective function value of state [s] *)
   val fv : state -> float
 
   (** [init ~prms0 ~f ()] returns an initialises optimisation state for initial parmaters [prms0] and objective function [f] *)
