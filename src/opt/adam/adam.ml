@@ -54,10 +54,12 @@ struct
     let beta2 = AD.(F beta2) in
     let beta2_ = AD.(Maths.(F 1. - beta2)) in
     let eps = AD.(F eps) in
-    let rec run s =
+    let rec run s b1 b2 =
       if stop s
       then s
       else (
+        let b1 = AD.Maths.(b1 * beta1) in
+        let b2 = AD.Maths.(b2 * beta2) in
         let t = AD.tag () in
         let xs =
           P.map
@@ -74,20 +76,26 @@ struct
             ~f:(fun x ->
               let p = AD.primal x.p in
               let g = AD.adjval x.p in
+              (* first moment *)
               let m = AD.Maths.((beta1 * x.m) + (beta1_ * g)) in
+              (* bias-corrected first moment *)
+              let m_ = AD.Maths.(m / (F 1. - b1)) in
+              (* second moment *)
               let v = AD.Maths.((beta2 * x.v) + (beta2_ * sqr g)) in
+              (* bias-corrected second moment *)
+              let v_ = AD.(Maths.(v / (F 1. - b2))) in
               let p =
                 match lr with
-                | Lr.Fix lr -> update (AD.pack_flt lr) p m v eps |> AD.primal
-                | Lr.Ada h -> update (AD.pack_flt (h s.k)) p m v eps |> AD.primal
+                | Lr.Fix lr -> update (AD.pack_flt lr) p m_ v_ eps |> AD.primal
+                | Lr.Ada h -> update (AD.pack_flt (h s.k)) p m_ v_ eps |> AD.primal
               in
               { p; m; v })
             xs
         in
         let s = { s with xs; k = succ s.k; fv } in
-        run s)
+        run s b1 b2)
     in
-    run s
+    run s AD.(F 1.) AD.(F 1.)
 
 
   let min = optimise min_update
