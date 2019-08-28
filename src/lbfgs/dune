@@ -4,4 +4,4 @@
  (libraries owl lbfgs owl-opt))
 
 (documentation
-   (package owl-opt-lbfgs))
+ (package owl-opt-lbfgs))

@@ -4,7 +4,6 @@ type t =
   | Fix of float (** fixed learning rate *)
   | Ada of (int -> float) (** adaptive learning rate *)
 
-
 (** Example learning rates
  {[
     (* fix learning rate *)
@@ -13,4 +12,3 @@ type t =
     (* expoential decay *)
     let lr = Lr.(Ada (fun k -> exp (-0.1 *. float step))
  ]} *)
- 

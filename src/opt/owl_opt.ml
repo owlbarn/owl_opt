@@ -30,4 +30,4 @@ module Prms = Prms
 
 (** {1 Learning rate module} *)
 
-module Lr = Lr 
+module Lr = Lr
