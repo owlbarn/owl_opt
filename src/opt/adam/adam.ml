@@ -3,6 +3,11 @@ struct
   type fv = AD.t
   type prm = AD.t
   type prms = prm P.t
+  type f = prms -> fv
+
+  type lr =
+    | Fix of float
+    | Ada of (int -> float)
 
   type x =
     { p : AD.t
@@ -11,12 +16,6 @@ struct
     }
 
   type xs = x P.t
-
-  type lr =
-    | Fix of float
-    | Ada of (int -> float)
-
-  type f = prms -> fv
 
   type state =
     { xs : xs
