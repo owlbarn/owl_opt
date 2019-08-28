@@ -18,9 +18,6 @@ struct
     ; f : f
     ; fv : float
     ; k : int
-    ; beta1 : float
-    ; beta2 : float
-    ; eps : float
     }
 
   type stop = state -> bool
@@ -30,7 +27,7 @@ struct
   let f s = s.f
   let fv s = s.fv
 
-  let init ?(beta1 = 0.9) ?(beta2 = 0.999) ?(eps = 1E-8) ~prms0 ~f () =
+  let init  ~prms0 ~f () =
     let fv = AD.unpack_flt (f prms0) in
     let xs =
       P.map prms0 ~f:(fun p ->
@@ -40,7 +37,7 @@ struct
           AD.Mat.reset v;
           { p; m; v })
     in
-    { xs; fv; f; k = 0; beta1; beta2; eps }
+    { xs; fv; f; k = 0} 
 
 
   let min_update lr x m v eps = AD.Maths.(x - (lr * m / (sqrt v + eps)))
@@ -51,12 +48,12 @@ struct
     s.fv < 1E-3
 
 
-  let optimise update ?(stop = stop) ~lr s =
-    let beta1 = AD.(F s.beta1) in
+  let optimise update ?(stop = stop) ?(beta1 = 0.9) ?(beta2 = 0.999) ?(eps = 1E-8) ~lr s =
+    let beta1 = AD.(F beta1) in
     let beta1_ = AD.(Maths.(F 1. - beta1)) in
-    let beta2 = AD.(F s.beta2) in
+    let beta2 = AD.(F beta2) in
     let beta2_ = AD.(Maths.(F 1. - beta2)) in
-    let eps = AD.(F s.eps) in
+    let eps = AD.(F eps) in
     let rec run s =
       if stop s
       then s

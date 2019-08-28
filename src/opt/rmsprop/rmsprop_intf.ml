@@ -3,7 +3,6 @@ module type Sig = sig
   type fv
   type prm
   type prms = prm t
-
   type f = prms -> fv
   type state
   type stop = state -> bool
@@ -12,8 +11,8 @@ module type Sig = sig
   val prms : state -> prms
   val f : state -> f
   val fv : state -> float
-  val init : ?beta:float -> ?eps:float -> prms0:prms -> f:f -> unit -> state
+  val init : prms0:prms -> f:f -> unit -> state
   val stop : state -> bool
-  val min : ?stop:stop -> lr:Lr.t -> state -> state
-  val max : ?stop:stop -> lr:Lr.t -> state -> state
+  val min : ?stop:stop -> ?beta:float -> ?eps:float -> lr:Lr.t -> state -> state
+  val max : ?stop:stop -> ?beta:float -> ?eps:float -> lr:Lr.t -> state -> state
 end

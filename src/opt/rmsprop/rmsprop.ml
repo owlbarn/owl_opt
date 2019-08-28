@@ -10,7 +10,6 @@ struct
     }
 
   type xs = x P.t
-
   type f = prms -> fv
 
   type state =
@@ -18,8 +17,6 @@ struct
     ; f : f
     ; fv : float
     ; k : int
-    ; beta : float
-    ; eps : float
     }
 
   type stop = state -> bool
@@ -29,7 +26,7 @@ struct
   let f s = s.f
   let fv s = s.fv
 
-  let init ?(beta = 0.9) ?(eps = 1E-8) ~prms0 ~f () =
+  let init ~prms0 ~f () =
     let fv = AD.unpack_flt (f prms0) in
     let xs =
       P.map
@@ -39,7 +36,7 @@ struct
           { p; v })
         prms0
     in
-    { xs; fv; f; k = 0; beta; eps }
+    { xs; fv; f; k = 0 }
 
 
   let min_update lr x g v eps = AD.Maths.(x - (lr * g / (sqrt v + eps)))
@@ -50,10 +47,10 @@ struct
     s.fv < 1E-3
 
 
-  let optimise update ?(stop = stop) ~lr s =
-    let beta = AD.(F s.beta) in
+  let optimise update ?(stop = stop) ?(beta = 0.9) ?(eps = 1E-8) ~lr s =
+    let beta = AD.(F beta) in
     let beta_ = AD.(Maths.(F 1. - beta)) in
-    let eps = AD.(F s.eps) in
+    let eps = AD.(F eps) in
     let rec run s =
       if stop s
       then s

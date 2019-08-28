@@ -20,5 +20,5 @@ let () =
   let f prms = Algodiff.D.Maths.(l2norm' (y - ((prms.a *@ x) + prms.b))) in
   let lr = Owl_opt.Lr.Fix 1E-4 in
   let s0 = O.init ~f ~prms0 () in
-  let s = O.min ~lr s0 in
-  Printf.printf "final loss: %f\n%!" (O.fv s)
+  let s = O.min ~lr ~beta:0.9 s0 in
+  Printf.printf "\nfinal loss: %f\n%!" (O.fv s)
