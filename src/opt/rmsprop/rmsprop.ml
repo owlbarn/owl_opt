@@ -39,18 +39,17 @@ struct
     { xs; fv; f; k = 0 }
 
 
-  let min_update lr x g v eps = AD.Maths.(x - (lr * g / (sqrt v + eps)))
-  let max_update lr x g v eps = AD.Maths.(x + (lr * g / (sqrt v + eps)))
+  let min_update lr x g v = AD.Maths.(x - (lr * g / sqrt v))
+  let max_update lr x g v = AD.Maths.(x + (lr * g / sqrt v))
 
   let stop s =
     if s.k mod 10 = 0 then Printf.printf "\rstep: %i | loss: %4.9f%!" s.k s.fv;
     s.fv < 1E-3
 
 
-  let optimise update ?(stop = stop) ?(beta = 0.9) ?(eps = 1E-8) ~lr s =
+  let optimise update ?(stop = stop) ?(beta = 0.9) ~lr s =
     let beta = AD.(F beta) in
     let beta_ = AD.(Maths.(F 1. - beta)) in
-    let eps = AD.(F eps) in
     let rec run s =
       if stop s
       then s
@@ -74,8 +73,8 @@ struct
               let v = AD.Maths.((beta * x.v) + (beta_ * sqr g)) in
               let p =
                 match lr with
-                | Lr.Fix lr -> update (AD.pack_flt lr) p g v eps |> AD.primal
-                | Lr.Ada h -> update (AD.pack_flt (h s.k)) p g v eps |> AD.primal
+                | Lr.Fix lr -> update (AD.pack_flt lr) p g v |> AD.primal
+                | Lr.Ada h -> update (AD.pack_flt (h s.k)) p g v |> AD.primal
               in
               { p; v })
             xs
