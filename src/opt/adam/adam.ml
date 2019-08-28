@@ -5,9 +5,6 @@ struct
   type prms = prm P.t
   type f = prms -> fv
 
-  (* learning rate type *)
-  include Lr
-
   type x =
     { p : AD.t
     ; m : AD.t
@@ -20,7 +17,6 @@ struct
     { xs : xs
     ; f : f
     ; fv : float
-    ; lr : lr
     ; k : int
     ; beta1 : float
     ; beta2 : float
@@ -29,13 +25,12 @@ struct
 
   type stop = state -> bool
 
-  let lr s = s.lr
   let iter s = s.k
   let prms s = P.map s.xs ~f:(fun x -> x.p)
   let f s = s.f
   let fv s = s.fv
 
-  let init ?(beta1 = 0.9) ?(beta2 = 0.999) ?(eps = 1E-8) ~prms0 ~f ~lr () =
+  let init ?(beta1 = 0.9) ?(beta2 = 0.999) ?(eps = 1E-8) ~prms0 ~f () =
     let fv = AD.unpack_flt (f prms0) in
     let xs =
       P.map prms0 ~f:(fun p ->
@@ -45,7 +40,7 @@ struct
           AD.Mat.reset v;
           { p; m; v })
     in
-    { xs; fv; f; lr; k = 0; beta1; beta2; eps }
+    { xs; fv; f; k = 0; beta1; beta2; eps }
 
 
   let min_update lr x m v eps = AD.Maths.(x - (lr * m / (sqrt v + eps)))
@@ -56,7 +51,7 @@ struct
     s.fv < 1E-3
 
 
-  let optimise update ?(stop = stop) s =
+  let optimise update ?(stop = stop) ~lr s =
     let beta1 = AD.(F s.beta1) in
     let beta1_ = AD.(Maths.(F 1. - beta1)) in
     let beta2 = AD.(F s.beta2) in
@@ -85,9 +80,9 @@ struct
               let m = AD.Maths.((beta1 * x.m) + (beta1_ * g)) in
               let v = AD.Maths.((beta2 * x.v) + (beta2_ * sqr g)) in
               let p =
-                match s.lr with
-                | Fix lr -> update (AD.pack_flt lr) p m v eps |> AD.primal
-                | Ada h -> update (AD.pack_flt (h s.k)) p m v eps |> AD.primal
+                match lr with
+                | Lr.Fix lr -> update (AD.pack_flt lr) p m v eps |> AD.primal
+                | Lr.Ada h -> update (AD.pack_flt (h s.k)) p m v eps |> AD.primal
               in
               { p; m; v })
             xs
@@ -98,6 +93,6 @@ struct
     run s
 
 
-  let min = optimise min_update
-  let max = optimise max_update
+  let min = optimise min_update 
+  let max = optimise max_update 
 end

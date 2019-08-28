@@ -3,31 +3,25 @@ struct
   type prm = AD.t
   type fv = AD.t
   type prms = prm P.t
-
-  (* learning rate type *)
-  include Lr
-  
   type f = prms -> fv
 
   type state =
     { prms : prms
     ; f : f
     ; fv : float
-    ; lr : lr
     ; k : int
     }
 
   type stop = state -> bool
 
-  let lr s = s.lr
   let iter s = s.k
   let prms s = s.prms
   let f s = s.f
   let fv s = s.fv
 
-  let init ~prms0 ~f ~lr () =
+  let init ~prms0 ~f () =
     let fv = AD.unpack_flt (f prms0) in
-    { prms = prms0; fv; f; lr; k = 0 }
+    { prms = prms0; fv; f; k = 0 }
 
 
   let min_update lr x g = AD.Maths.(x - (lr * g))
@@ -38,7 +32,7 @@ struct
     s.fv < 1E-3
 
 
-  let optimise update ?(stop = stop) s =
+  let optimise update ?(stop = stop) ~lr s =
     let rec run s =
       if stop s
       then s
@@ -53,9 +47,9 @@ struct
             ~f:(fun prm ->
               let x = AD.primal prm in
               let g = AD.adjval prm in
-              match s.lr with
-              | Fix lr -> update (AD.pack_flt lr) x g |> AD.primal
-              | Ada h -> update (AD.pack_flt (h s.k)) x g |> AD.primal)
+              match lr with
+              | Lr.Fix lr -> update (AD.pack_flt lr) x g |> AD.primal
+              | Lr.Ada h -> update (AD.pack_flt (h s.k)) x g |> AD.primal)
             prms
         in
         let s = { s with prms; k = succ s.k; fv } in
@@ -64,6 +58,6 @@ struct
     run s
 
 
-  let min = optimise min_update
-  let max = optimise max_update
+  let min = optimise min_update 
+  let max = optimise max_update 
 end

@@ -11,16 +11,12 @@ struct
 
   type xs = x P.t
 
-  (* learning rate type *)
-  include Lr
-
   type f = prms -> fv
 
   type state =
     { xs : xs
     ; f : f
     ; fv : float
-    ; lr : lr
     ; k : int
     ; beta : float
     ; eps : float
@@ -28,13 +24,12 @@ struct
 
   type stop = state -> bool
 
-  let lr s = s.lr
   let iter s = s.k
   let prms s = P.map ~f:(fun x -> x.p) s.xs
   let f s = s.f
   let fv s = s.fv
 
-  let init ?(beta = 0.9) ?(eps = 1E-8) ~prms0 ~f ~lr () =
+  let init ?(beta = 0.9) ?(eps = 1E-8) ~prms0 ~f () =
     let fv = AD.unpack_flt (f prms0) in
     let xs =
       P.map
@@ -44,7 +39,7 @@ struct
           { p; v })
         prms0
     in
-    { xs; fv; f; lr; k = 0; beta; eps }
+    { xs; fv; f; k = 0; beta; eps }
 
 
   let min_update lr x g v eps = AD.Maths.(x - (lr * g / (sqrt v + eps)))
@@ -55,7 +50,7 @@ struct
     s.fv < 1E-3
 
 
-  let optimise update ?(stop = stop) s =
+  let optimise update ?(stop = stop) ~lr s =
     let beta = AD.(F s.beta) in
     let beta_ = AD.(Maths.(F 1. - beta)) in
     let eps = AD.(F s.eps) in
@@ -81,9 +76,9 @@ struct
               let g = AD.adjval x.p in
               let v = AD.Maths.((beta * x.v) + (beta_ * sqr g)) in
               let p =
-                match s.lr with
-                | Fix lr -> update (AD.pack_flt lr) p g v eps |> AD.primal
-                | Ada h -> update (AD.pack_flt (h s.k)) p g v eps |> AD.primal
+                match lr with
+                | Lr.Fix lr -> update (AD.pack_flt lr) p g v eps |> AD.primal
+                | Lr.Ada h -> update (AD.pack_flt (h s.k)) p g v eps |> AD.primal
               in
               { p; v })
             xs
