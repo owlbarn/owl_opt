@@ -4,36 +4,16 @@ The entry point of this library is {!module:Owl_opt}.
 
 {2 Workflow} 
 
-+ define your optimisation parameter record and apply [@@deriving prms]
-+ make an optimisation module [O] using your favourite algorithm functor
-+ define an objective function that takes as input your parameter type
-+ define initial parameters
-+ define learning rates with {!module:Lr}
-+ initialise optimisation session [s] with [O.init]
++ define a record type ['a t] in some module [Prms]
++ apply ppx deriver [@@deriving prms] to type ['a t] so that [Prms] has type {!Owl_opt.Prms.PT}
++ pass [Prms] through your favourite algorithm functor to create an optimisation module [O]
++ define an objective function [f] that takes as input your record type ['a t] 
++ define initial parameters [prms0]
++ define learning rates [lr] with {!module:Owl_opt.Lr}
++ initialise optimisation state [s0] with [O.init ~prms0 ~f]
 + define stoping criterion function [stop: state -> bool] 
-+ minimise the optimisation session
++ minimise the optimisation session with [O.min ~stop s0]
 
-{2 Important modules }
-
-{3 1. Parameters}
-- module type {!Owl_opt.Prms.PT}
-
-{3 2. Learning rate}
-- module {!Owl_opt.Lr}
-
-{3 3. Double-precision} 
-- Vanilla gradient descent {!Owl_opt.D.Gd.Make}
-
-- Adam {!Owl_opt.D.Adam.Make}
-
-- Rmsprop {!Owl_opt.D.Rmsprop.Make}
-
-{3 4. Single-precision}
-- Vanilla gradient descent {!Owl_opt.S.Gd.Make}
-
-- Adam {!Owl_opt.S.Adam.Make}
-
-- Rmsprop {!Owl_opt.S.Rmsprop.Make}
 
 {2 Example} 
 
@@ -61,3 +41,29 @@ The entry point of this library is {!module:Owl_opt}.
  let prms = O.prms s 
 ]}
  
+{2 Important modules }
+
+{3 1. Parameters}
+- module type {!Owl_opt.Prms.PT}
+
+{3 2. Learning rate}
+- module {!Owl_opt.Lr}
+
+{3 3. Double-precision} 
+- Vanilla gradient descent {!Owl_opt.D.Gd.Make}
+
+- Adam {!Owl_opt.D.Adam.Make}
+
+- Rmsprop {!Owl_opt.D.Rmsprop.Make}
+
+- Lbfgs (see {{:../owl-opt-lbfgs/index.html}Owl Opt Lbfgs})
+
+{3 4. Single-precision}
+- Vanilla gradient descent {!Owl_opt.S.Gd.Make}
+
+- Adam {!Owl_opt.S.Adam.Make}
+
+- Rmsprop {!Owl_opt.S.Rmsprop.Make}
+
+ 
+
