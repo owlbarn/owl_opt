@@ -4,9 +4,8 @@ module type Sig = sig
   type fv
   type prms = prm t
 
-  type lr =
-    | Fix of float
-    | Ada of (int -> float)
+  (* learning rate type *)
+  include module type of Lr
 
   type f = prms -> fv
   type state

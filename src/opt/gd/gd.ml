@@ -4,10 +4,9 @@ struct
   type fv = AD.t
   type prms = prm P.t
 
-  type lr =
-    | Fix of float
-    | Ada of (int -> float)
-
+  (* learning rate type *)
+  include Lr
+  
   type f = prms -> fv
 
   type state =
