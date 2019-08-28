@@ -8,3 +8,6 @@
  (name owl_opt)
  (public_name owl-opt)
  (libraries owl lbfgs))
+
+(documentation
+   (package owl-opt))

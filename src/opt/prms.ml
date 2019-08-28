@@ -8,10 +8,10 @@ module type PT = sig
       type 'a t = {a: 'a; b: 'a} [@@deriving prms]
    end
   ]}
- *) 
+ *)
 
   (** ['a t] is typically defined by the user. *)
-  
+
   type 'a t
 
   (** The following functions can be derived using [@@deriving prms] *)
@@ -20,6 +20,4 @@ module type PT = sig
   val map2 : f:('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
   val iter : f:('a -> unit) -> 'a t -> unit
   val iter2 : f:('a -> 'b -> unit) -> 'a t -> 'b t -> unit
-
- 
 end
