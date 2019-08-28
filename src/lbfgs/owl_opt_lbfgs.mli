@@ -12,16 +12,21 @@ module Make (P : Owl_opt.Prms.PT) : sig
   val fv : state -> float
   val prms : state -> prms
   val f : state -> f
+  val init : prms0:prms -> f:f -> unit -> state
 
-  val init
-    :  ?pgtol:float
+  val min
+    :  ?stop:stop
+    -> ?pgtol:float
     -> ?factr:float
     -> ?corrections:int
-    -> prms0:prms
-    -> f:f
-    -> unit
+    -> state
     -> state
 
-  val min : stop:stop -> state -> state
-  val max : stop:stop -> state -> state
+  val max
+    :  ?stop:stop
+    -> ?pgtol:float
+    -> ?factr:float
+    -> ?corrections:int
+    -> state
+    -> state
 end

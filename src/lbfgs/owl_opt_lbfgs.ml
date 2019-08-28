@@ -72,9 +72,6 @@ module Make (P : Owl_opt.Prms.PT) = struct
     ; f : f
     ; fv : float
     ; k : int
-    ; pgtol : float
-    ; factr : float
-    ; corrections : int
     ; info : info
     }
 
@@ -85,10 +82,10 @@ module Make (P : Owl_opt.Prms.PT) = struct
   let prms s = s.prms
   let f s = s.f
 
-  let init ?(pgtol = 0.) ?(factr = 1E9) ?(corrections = 20) ~prms0 ~f () =
+  let init ~prms0 ~f () =
     let fv = f prms0 |> Algodiff.D.unpack_flt in
     let n_prms, info = build_info prms0 in
-    { prms = prms0; n_prms; fv; info; f; k = 0; pgtol; factr; corrections }
+    { prms = prms0; n_prms; fv; info; f; k = 0 }
 
 
   let f_df s x g =
@@ -101,12 +98,15 @@ module Make (P : Owl_opt.Prms.PT) = struct
     Algodiff.D.unpack_flt c
 
 
-  let min ~stop s =
+  let stop s =
+    if s.k mod 10 = 0 then Printf.printf "\rstep: %i | loss: %4.9f%!" s.k s.fv;
+    s.fv < 1E-3
+
+
+  let optimise update ?(stop = stop) ?(pgtol = 1E-5) ?(factr = 1E7) ?(corrections = 10) s
+    =
     let k = ref 0 in
     let ps = reshape_1 Owl.Arr.(zeros [| 1; s.n_prms |]) s.n_prms in
-    let pgtol = s.pgtol in
-    let factr = s.factr in
-    let corrections = s.corrections in
     let stop st =
       let fv = Lbfgs.previous_f st in
       let prms = extract s.info ps in
@@ -114,25 +114,19 @@ module Make (P : Owl_opt.Prms.PT) = struct
       stop { s with fv; k = !k; prms }
     in
     blit Algodiff.D.primal s.info s.prms ps;
-    let fv = Lbfgs.(C.min ~print:No ~pgtol ~factr ~corrections ~stop (f_df s) ps) in
+    let fv = update ~pgtol ~factr ~corrections ~stop (f_df s) ps in
     let prms = extract s.info ps in
     { s with fv; prms; k = !k + 1 }
 
 
-  let max ~stop s =
-    let k = ref 0 in
-    let ps = reshape_1 Owl.Arr.(zeros [| 1; s.n_prms |]) s.n_prms in
-    let pgtol = s.pgtol in
-    let factr = s.factr in
-    let corrections = s.corrections in
-    let stop st =
-      let fv = Lbfgs.previous_f st in
-      let prms = extract s.info ps in
-      k := !k + 1;
-      stop { s with fv; k = Lbfgs.(iter st); prms }
-    in
-    blit Algodiff.D.primal s.info s.prms ps;
-    let fv = Lbfgs.(C.max ~print:No ~pgtol ~factr ~corrections ~stop (f_df s) ps) in
-    let prms = extract s.info ps in
-    { s with fv; prms; k = !k + 1 }
+  let lmin ~pgtol ~factr ~corrections ~stop f_df ps =
+    Lbfgs.C.min ~print:Lbfgs.No ~pgtol ~factr ~corrections ~stop f_df ps
+
+
+  let lmax ~pgtol ~factr ~corrections ~stop f_df ps =
+    Lbfgs.C.max ~print:Lbfgs.No ~pgtol ~factr ~corrections ~stop f_df ps
+
+
+  let min = optimise lmin
+  let max = optimise lmax
 end

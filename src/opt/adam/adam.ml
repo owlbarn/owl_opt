@@ -27,7 +27,7 @@ struct
   let f s = s.f
   let fv s = s.fv
 
-  let init  ~prms0 ~f () =
+  let init ~prms0 ~f () =
     let fv = AD.unpack_flt (f prms0) in
     let xs =
       P.map prms0 ~f:(fun p ->
@@ -37,7 +37,7 @@ struct
           AD.Mat.reset v;
           { p; m; v })
     in
-    { xs; fv; f; k = 0} 
+    { xs; fv; f; k = 0 }
 
 
   let min_update lr x m v eps = AD.Maths.(x - (lr * m / (sqrt v + eps)))
@@ -90,6 +90,6 @@ struct
     run s
 
 
-  let min = optimise min_update 
-  let max = optimise max_update 
+  let min = optimise min_update
+  let max = optimise max_update
 end

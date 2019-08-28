@@ -58,6 +58,6 @@ struct
     run s
 
 
-  let min = optimise min_update 
-  let max = optimise max_update 
+  let min = optimise min_update
+  let max = optimise max_update
 end
