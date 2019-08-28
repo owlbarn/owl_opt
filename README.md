@@ -4,13 +4,15 @@ Owl Opt is a gradient-based optimisation library that works well with Owl's auto
 
 Owl Opt currently provides several popular optimization methods (e.g. Adam, Rmsprop, Lbfgs). With the exception of LBFGS (built ontop of [L-BFGS-ocaml](https://github.com/Chris00/L-BFGS-ocaml)), all methods now support both single and double precision.
 
+Please see the [documentation](https://ocaml.xyz/owl_opt).
+
 ## Installation
 ```sh
 $ dune build @install
 $ dune install
 ```
 
-## Tutorial
+## Example usage
 
 The following code fragement solves a standard linear regression problem: find paramters `a` and `b` that minimises the l2 loss `sqrt((y-(a*x+b))^2)`. 
 The optimisation is carried out using Adam with hyperparameters `beta1=0.99` and `beta2=0.999`.
@@ -48,10 +50,4 @@ let c = O.fv s
 let prms = O.prms s
 ```
 
-See `examples/test_adam.ml` for more details:
-```sh
-$ dune exec examples/test_adam.exe
-step: 7670 | loss: 0.003270402
-final loss: 0.000704
-```
  
