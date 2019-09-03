@@ -5,8 +5,8 @@
       type 'a t = {a: 'a; b: 'a} [@@deriving prms]
    end
   ]}
+  [Prms] has type [PT]. The user defines the desired paramter record ['a t] and [[@@deriving prms]] derives the corresponding functions map, map2, iter, and iter2.
  *)
-
 
 (** input module type to functors that make optimisation modules such as {!module:Owl_opt.D.Adam.Make} *)
 module type PT = sig
@@ -33,6 +33,3 @@ module Pair : sig
   val unpack : 'a t -> 'a * 'a
   val pack : 'a * 'a -> 'a t
 end
-
-
-

@@ -44,7 +44,7 @@ The entry point of this library is {!module:Owl_opt}.
 {2 Important modules }
 
 {3 1. Parameters}
-- module type {!Owl_opt.Prms.PT}
+- module {!Owl_opt.Prms} and module type definition {!Owl_opt.Prms.PT}
 
 {3 2. Learning rate}
 - module {!Owl_opt.Lr}
@@ -66,4 +66,3 @@ The entry point of this library is {!module:Owl_opt}.
 - Rmsprop {!Owl_opt.S.Rmsprop.Make}
 
  
-
