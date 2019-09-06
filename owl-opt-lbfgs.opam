@@ -14,5 +14,6 @@ depends: [
   "dune" {>= "1.5.0"}
   "owl-base" {>= "0.6.0"}
   "lbfgs"
+  "owl-opt"
 ]
 synopsis: "Owl's Lbfgs Optimisation Module" 
