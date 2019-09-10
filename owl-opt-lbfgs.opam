@@ -15,5 +15,6 @@ depends: [
   "owl-base" {>= "0.6.0"}
   "lbfgs"
   "owl-opt"
+  "ppx-owl-opt"
 ]
 synopsis: "Owl's Lbfgs Optimisation Module" 
