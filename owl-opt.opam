@@ -13,5 +13,6 @@ depends: [
   "ocaml" {>= "4.06.0"}
   "dune" {>= "1.5.0"}
   "owl" {>= "0.6.0"}
+  "ppx-owl-opt"
 ]
 synopsis: "Owl's Optimisation Module"  

@@ -7,12 +7,11 @@ dev-repo: "git+https://github.com/owlbarn/owl_opt.git"
 bug-reports: "https://github.com/owlbarn/owl_opt/issues"
 build: [
   ["dune" "build" "-p" name "-j" jobs]
-  ["dune" "runtest" "-p" name "-j" jobs] {with-test}
+  ["dune" "runtest" "src/ppx" "-p" name "-j" jobs] {with-test}
 ]
 depends: [
   "ocaml" {>= "4.06.0"}
   "dune" {>= "1.5.0"}
-  "owl" {>= "0.6.0"}
   "ppxlib"
 ]
 synopsis: "Ppx tool for owl-opt"
