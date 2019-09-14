@@ -1,4 +1,4 @@
 (test
  (name test)
  (preprocess
-  (pps ppx_owl_opt)))
+  (pps ppx-owl-opt)))

@@ -1,5 +1,5 @@
 (tests
  (names test_gd test_adam test_rmsprop test_lbfgs test_single test_pair)
- (libraries owl-opt owl-opt-lbfgs ppx-owl-opt owl)
+ (libraries owl-opt owl-opt-lbfgs owl)
  (preprocess
-  (pps ppx_owl_opt)))
+  (pps ppx-owl-opt)))
