@@ -1,4 +1,4 @@
-# Owl Opt 
+# Owl Opt [![Build Status](https://travis-ci.org/owlbarn/owl_opt.svg?branch=master)](https://travis-ci.org/owlbarn/owl_opt) 
 
 Owl Opt is a gradient-based optimisation library that works well with Owl's automatic differentiation library. Using Owl Opt's ppx deriver, users can define their own record of optimization parameters without having to worry too much about book keeping. This greatly facilitates fast prototyping. 
 
