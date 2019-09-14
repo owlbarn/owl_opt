@@ -8,9 +8,12 @@ env:
   global:
   - PINS="owl-opt:. owl-opt-lbfgs:. ppx-owl-opt"
   matrix:
+  - PACKAGE="owl-opt" DISTRO="debian-stable" OCAML_VERSION="4.06"
   - PACKAGE="owl-opt" DISTRO="debian-stable" OCAML_VERSION="4.07"
   - PACKAGE="owl-opt" DISTRO="debian-stable" OCAML_VERSION="4.08"
+  - PACKAGE="owl-opt-lbfgs" DISTRO="debian-stable" OCAML_VERSION="4.06"
   - PACKAGE="owl-opt-lbfgs" DISTRO="debian-stable" OCAML_VERSION="4.07"
-  - PACKAGE="owl-opt-lbfgs" DISTRO="debian-stable" OCAML_VERSION="4.07"
+  - PACKAGE="owl-opt-lbfgs" DISTRO="debian-stable" OCAML_VERSION="4.08"
+  - PACKAGE="ppx-owl-opt" DISTRO="debian-stable" OCAML_VERSION="4.06"
   - PACKAGE="ppx-owl-opt" DISTRO="debian-stable" OCAML_VERSION="4.07"
-  - PACKAGE="ppx-owl-opt" DISTRO="debian-stable" OCAML_VERSION="4.07"
+  - PACKAGE="ppx-owl-opt" DISTRO="debian-stable" OCAML_VERSION="4.08"
