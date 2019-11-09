@@ -1,10 +1,9 @@
+(* adapted from deriving-slowly: https://github.com/rgrinberg/deriving-slowly *)
 open Base
 open Ppxlib
 
 let str_gen ~loc ~path:_ (_rec, t) =
   let (module Ast) = Ast_builder.make loc in
-  (* we are silently dropping mutually recursive definitions to keep things
-     brief *)
   let t = List.hd_exn t in
   let fields =
     match t.ptype_kind with
@@ -12,8 +11,6 @@ let str_gen ~loc ~path:_ (_rec, t) =
     | _ -> Location.raise_errorf ~loc "ppx_owl_optimise only works on records"
   in
   let lident_of_field field =
-    (* We are reusing the locations of the field declarations for the
-       accesses. *)
     Ast_builder.Default.Located.lident ~loc:field.pld_name.loc field.pld_name.txt
   in
   let map =
