@@ -7,6 +7,12 @@ Owl Opt currently provides several popular optimization methods (e.g. Adam, Rmsp
 Please see the [documentation](https://ocaml.xyz/owl_opt).
 
 ## Installation
+### Opam
+```sh
+$ opam install owl-opt
+$ opam install owl-opt-lbfgs
+```
+### Manual
 ```sh
 $ dune build @install
 $ dune install
