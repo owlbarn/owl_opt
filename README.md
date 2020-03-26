@@ -47,7 +47,7 @@ let s0 = O.init ~prms0 ~f ()
 let stop s = O.(fv s) < 1E-4
 
 (* minimise objective function f *)
-let s = O.min ~stop ~beta1:0.99 ~beta2:0.999 ~lr f
+let s = O.min ~stop ~beta1:0.99 ~beta2:0.999 ~lr s
 
 (* final objective function value *)
 let c = O.fv s
