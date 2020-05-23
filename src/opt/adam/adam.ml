@@ -27,14 +27,19 @@ struct
   let f s = s.f
   let fv s = s.fv
 
+  let rec copy x =
+    match AD.primal x with
+    | AD.F x -> AD.F x
+    | AD.Arr y -> AD.Arr AD.A.(copy y)
+    | _ -> copy x
+
+
   let init ~prms0 ~f () =
     let fv = AD.unpack_flt (f prms0) in
     let xs =
       P.map prms0 ~f:(fun p ->
-          let m = AD.copy_primal' p in
-          AD.Mat.reset m;
-          let v = AD.copy_primal' p in
-          AD.Mat.reset v;
+          let m = p |> copy |> AD.reset_zero in
+          let v = p |> copy |> AD.reset_zero in
           { p; m; v })
     in
     { xs; fv; f; k = 0 }

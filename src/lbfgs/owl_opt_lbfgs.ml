@@ -103,8 +103,7 @@ module Make (P : Owl_opt.Prms.PT) = struct
     s.fv < 1E-3
 
 
-  let optimise update ?(stop = stop) ?(pgtol = 1E-5) ?(factr = 1E7) ?(corrections = 10) s
-    =
+  let optimise update ?(stop = stop) ?(pgtol = 1E-5) ?(factr = 1E7) ?(corrections = 10) s =
     let k = ref 0 in
     let ps = reshape_1 Owl.Arr.(zeros [| 1; s.n_prms |]) s.n_prms in
     let stop st =
