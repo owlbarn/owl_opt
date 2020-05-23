@@ -12,7 +12,7 @@ module type Sig = sig
   type prms = prm t
 
   (** objective function type *)
-  type f = prms -> fv
+  type f = int -> prms -> fv
 
   (** internal state *)
   type state

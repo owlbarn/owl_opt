@@ -11,7 +11,7 @@ module Make (P : Owl_opt.Prms.PT) : sig
   type prms = prm P.t
 
   (** objective function type *)
-  type f = prms -> fv
+  type f = int -> prms -> fv
 
   (** internal state *)
   type state

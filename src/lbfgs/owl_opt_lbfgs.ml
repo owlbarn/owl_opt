@@ -5,7 +5,7 @@ module Make (P : Owl_opt.Prms.PT) = struct
   type fv = Algodiff.D.t
   type prm = Algodiff.D.t
   type prms = prm P.t
-  type f = prms -> fv
+  type f = int -> prms -> fv
 
   type adt =
     | S
@@ -83,16 +83,17 @@ module Make (P : Owl_opt.Prms.PT) = struct
   let f s = s.f
 
   let init ~prms0 ~f () =
-    let fv = f prms0 |> Algodiff.D.unpack_flt in
+    let k = 0 in
+    let fv = f k prms0 |> Algodiff.D.unpack_flt in
     let n_prms, info = build_info prms0 in
-    { prms = prms0; n_prms; fv; info; f; k = 0 }
+    { prms = prms0; n_prms; fv; info; f; k }
 
 
   let f_df s x g =
     let x = extract s.info x in
     let t = Algodiff.D.tag () in
     let x = P.map x ~f:(fun x -> Algodiff.D.make_reverse x t) in
-    let c = s.f x in
+    let c = s.f s.k x in
     Algodiff.D.reverse_prop (F 1.) c;
     blit Algodiff.D.adjval s.info x g;
     Algodiff.D.unpack_flt c

@@ -10,7 +10,7 @@ struct
     }
 
   type xs = x P.t
-  type f = prms -> fv
+  type f = int -> prms -> fv
 
   type state =
     { xs : xs
@@ -34,7 +34,8 @@ struct
 
 
   let init ~prms0 ~f () =
-    let fv = AD.unpack_flt (f prms0) in
+    let k = 0 in
+    let fv = AD.unpack_flt (f k prms0) in
     let xs =
       P.map
         ~f:(fun p ->
@@ -42,7 +43,7 @@ struct
           { p; v })
         prms0
     in
-    { xs; fv; f; k = 0 }
+    { xs; fv; f; k }
 
 
   let min_update lr x g v = AD.Maths.(x - (lr * g / sqrt v))
@@ -60,6 +61,7 @@ struct
       if stop s
       then s
       else (
+        let k = s.k in
         let t = AD.tag () in
         let xs =
           P.map
@@ -68,7 +70,7 @@ struct
               { x with p })
             s.xs
         in
-        let l = s.f (P.map ~f:(fun x -> x.p) xs) in
+        let l = s.f k (P.map ~f:(fun x -> x.p) xs) in
         AD.(reverse_prop (F 1.) l);
         let fv = AD.unpack_flt l in
         let xs =
@@ -85,7 +87,7 @@ struct
               { p; v })
             xs
         in
-        let s = { s with xs; k = succ s.k; fv } in
+        let s = { s with xs; k = succ k; fv } in
         run s)
     in
     run s
