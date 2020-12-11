@@ -3,7 +3,7 @@ struct
   type prm = AD.t
   type fv = AD.t
   type prms = prm P.t
-  type f = prms -> fv
+  type f = int -> prms -> fv
 
   type state =
     { prms : prms
@@ -20,8 +20,9 @@ struct
   let fv s = s.fv
 
   let init ~prms0 ~f () =
-    let fv = AD.unpack_flt (f prms0) in
-    { prms = prms0; fv; f; k = 0 }
+    let k = 0 in
+    let fv = AD.unpack_flt (f k prms0) in
+    { prms = prms0; fv; f; k }
 
 
   let min_update lr x g = AD.Maths.(x - (lr * g))
@@ -37,9 +38,10 @@ struct
       if stop s
       then s
       else (
+        let k = s.k in
         let t = AD.tag () in
         let prms = P.map ~f:(fun x -> AD.make_reverse x t) s.prms in
-        let l = s.f prms in
+        let l = s.f k prms in
         AD.(reverse_prop (F 1.) l);
         let fv = AD.unpack_flt l in
         let prms =
@@ -52,7 +54,7 @@ struct
               | Lr.Ada h -> update (AD.pack_flt (h s.k)) x g |> AD.primal)
             prms
         in
-        let s = { s with prms; k = succ s.k; fv } in
+        let s = { s with prms; k = succ k; fv } in
         run s)
     in
     run s
