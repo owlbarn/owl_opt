@@ -8,7 +8,7 @@ let () =
   let b = Algodiff.D.Mat.gaussian 5 1 in
   let y = Algodiff.D.Maths.((a *@ x) + b) in
   let prms0 = Prms.pack (Algodiff.D.Mat.gaussian 5 3, Algodiff.D.Mat.gaussian 5 1) in
-  let f prms =
+  let f _ prms =
     let a, b = Prms.unpack prms in
     Algodiff.D.Maths.(l2norm' (y - ((a *@ x) + b)))
   in
