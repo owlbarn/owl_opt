@@ -32,7 +32,7 @@ end
 module O = Owl_opt.D.Adam.Make (Prms)
 
 (* define the objective function *)
-let f prms = Owl.Algodiff.D.Maths.(l2norm' (y - ((prms.a *@ x) + prms.b))) 
+let f _ prms = Owl.Algodiff.D.Maths.(l2norm' (y - ((prms.a *@ x) + prms.b))) 
 
 (* define initial parameters *)
 let prms0 = {a = Owl.Algodiff.D.Mat.gaussian 5 5; b = Owl.Algodiff.D.gaussian 5 1} 
