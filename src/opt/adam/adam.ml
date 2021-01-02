@@ -1,3 +1,5 @@
+open Base
+
 module Make (AD : Owl_algodiff_generic_sig.Sig with type A.elt = float) (P : Prms.PT) =
 struct
   type fv = AD.t
@@ -14,18 +16,31 @@ struct
   type xs = x P.t
 
   type state =
-    { xs : xs
-    ; f : f
-    ; fv : float
-    ; k : int
+    { mutable xs : xs
+    ; mutable fv_hist : float list
+    ; mutable k : int
+    ; beta1 : float
+    ; beta2 : float
+    ; eps : float
+    ; lr : Lr.t
     }
 
-  type stop = state -> bool
+  type status =
+    | Continue of float
+    | Stop of float
+
+  type stop = float -> state -> bool
 
   let iter s = s.k
   let prms s = P.map s.xs ~f:(fun x -> x.p)
-  let f s = s.f
-  let fv s = s.fv
+
+  let prev_fv s =
+    match List.hd s.fv_hist with
+    | Some fv -> fv
+    | None -> failwith "there has not been any function evaluations"
+
+
+  let fv_hist s = List.rev s.fv_hist
 
   let rec copy x =
     match AD.primal x with
@@ -34,77 +49,82 @@ struct
     | _ -> copy x
 
 
-  let init ~prms0 ~f () =
+  let init ?(beta1 = 0.9) ?(beta2 = 0.999) ?(eps = 1E-8) ~lr ~prms0 () =
     let k = 0 in
-    let fv = AD.unpack_flt (f k prms0) in
+    let fv_hist = [] in
     let xs =
       P.map prms0 ~f:(fun p ->
           let m = p |> copy |> AD.reset_zero in
           let v = p |> copy |> AD.reset_zero in
           { p; m; v })
     in
-    { xs; fv; f; k }
+    { xs; fv_hist; k; beta1; beta2; eps; lr }
 
 
   let min_update lr x m v eps = AD.Maths.(x - (lr * m / (sqrt v + eps)))
   let max_update lr x m v eps = AD.Maths.(x + (lr * m / (sqrt v + eps)))
 
-  let stop s =
-    if s.k mod 10 = 0 then Printf.printf "\rstep: %i | loss: %4.9f%!" s.k s.fv;
-    s.fv < 1E-3
+  let stop fv s =
+    Stdio.printf "\rstep: %i | loss: %4.9f%!" s.k fv;
+    Float.(fv < 1E-3)
 
 
-  let optimise update ?(stop = stop) ?(beta1 = 0.9) ?(beta2 = 0.999) ?(eps = 1E-8) ~lr s =
-    let beta1 = AD.(F beta1) in
-    let beta1_ = AD.(Maths.(F 1. - beta1)) in
-    let beta2 = AD.(F beta2) in
-    let beta2_ = AD.(Maths.(F 1. - beta2)) in
-    let eps = AD.(F eps) in
-    let rec run s b1 b2 =
-      if stop s
-      then s
-      else (
-        let k = s.k in
-        let b1 = AD.Maths.(b1 * beta1) in
-        let b2 = AD.Maths.(b2 * beta2) in
-        let t = AD.tag () in
-        let xs =
-          P.map
-            ~f:(fun x ->
-              let p = AD.make_reverse x.p t in
-              { x with p })
-            s.xs
-        in
-        let l = s.f k (P.map ~f:(fun x -> x.p) xs) in
-        AD.(reverse_prop (F 1.) l);
-        let fv = AD.unpack_flt l in
-        let xs =
-          P.map
-            ~f:(fun x ->
-              let p = AD.primal x.p in
-              let g = AD.adjval x.p in
-              (* first moment *)
-              let m = AD.Maths.((beta1 * x.m) + (beta1_ * g)) in
-              (* bias-corrected first moment *)
-              let m_ = AD.Maths.(m / (F 1. - b1)) in
-              (* second moment *)
-              let v = AD.Maths.((beta2 * x.v) + (beta2_ * sqr g)) in
-              (* bias-corrected second moment *)
-              let v_ = AD.(Maths.(v / (F 1. - b2))) in
-              let p =
-                match lr with
-                | Lr.Fix lr -> update (AD.pack_flt lr) p m_ v_ eps |> AD.primal
-                | Lr.Ada h -> update (AD.pack_flt (h s.k)) p m_ v_ eps |> AD.primal
-              in
-              { p; m; v })
-            xs
-        in
-        let s = { s with xs; k = succ k; fv } in
-        run s b1 b2)
+  let step update ?(stop = stop) ~f s =
+    let k = s.k in
+    let t = AD.tag () in
+    let xs =
+      P.map
+        ~f:(fun x ->
+          let p = AD.make_reverse x.p t in
+          { x with p })
+        s.xs
     in
-    run s AD.(F 1.) AD.(F 1.)
+    let l = f k (P.map ~f:(fun x -> x.p) xs) in
+    let fv = AD.unpack_flt l in
+    if stop fv s
+    then Stop fv
+    else (
+      AD.(reverse_prop (F 1.) l);
+      let xs =
+        P.map
+          ~f:(fun x ->
+            let p = AD.primal x.p in
+            let g = AD.adjval x.p in
+            (* first moment *)
+            let beta1_ = 1. -. s.beta1 in
+            let b1 = Float.(s.beta1 ** Float.(of_int Int.(k + 1))) in
+            let m = AD.Maths.((F s.beta1 * x.m) + (F beta1_ * g)) in
+            (* beta1^(k+1) *)
+            (* bias-corrected first moment *)
+            let m_ = AD.Maths.(m / F (1. -. b1)) in
+            (* second moment *)
+            let beta2_ = 2. -. s.beta2 in
+            let b2 = Float.(s.beta2 ** Float.(of_int Int.(k + 1))) in
+            let v = AD.Maths.((F s.beta2 * x.v) + (F beta2_ * sqr g)) in
+            (* bias-corrected second moment *)
+            let v_ = AD.(Maths.(v / F (1. -. b2))) in
+            let p =
+              match s.lr with
+              | Lr.Fix lr -> update (AD.pack_flt lr) p m_ v_ (AD.F s.eps) |> AD.primal
+              | Lr.Ada h -> update (AD.pack_flt (h s.k)) p m_ v_ (AD.F s.eps) |> AD.primal
+            in
+            { p; m; v })
+          xs
+      in
+      s.fv_hist <- fv :: s.fv_hist;
+      s.xs <- xs;
+      s.k <- Int.succ k;
+      Continue fv)
 
 
+  let rec optimise update ?(stop = stop) ~f s =
+    match step ~stop update ~f s with
+    | Stop fv -> fv
+    | Continue _ -> optimise update ~stop ~f s
+
+
+  let min_step = step min_update
+  let max_step = step max_update
   let min = optimise min_update
   let max = optimise max_update
 end

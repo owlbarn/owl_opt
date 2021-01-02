@@ -11,14 +11,28 @@ end
 open P
 module O = Owl_opt.D.Adam.Make (P)
 
+let x = Algodiff.D.Mat.gaussian 3 1
+let a = Algodiff.D.Mat.gaussian 5 3
+let b = Algodiff.D.Mat.gaussian 5 1
+let y = Algodiff.D.Maths.((a *@ x) + b)
+let prms0 = { a = Algodiff.D.Mat.gaussian 5 3; b = Algodiff.D.Mat.gaussian 5 1 }
+let loss prms = Algodiff.D.Maths.(l2norm' (y - ((prms.a *@ x) + prms.b)))
+let f _ prms = loss prms
+let lr = Owl_opt.Lr.Fix 1E-2
+
 let () =
-  let x = Algodiff.D.Mat.gaussian 3 1 in
-  let a = Algodiff.D.Mat.gaussian 5 3 in
-  let b = Algodiff.D.Mat.gaussian 5 1 in
-  let y = Algodiff.D.Maths.((a *@ x) + b) in
-  let prms0 = { a = Algodiff.D.Mat.gaussian 5 3; b = Algodiff.D.Mat.gaussian 5 1 } in
-  let f _ prms = Algodiff.D.Maths.(l2norm' (y - ((prms.a *@ x) + prms.b))) in
-  let lr = Owl_opt.Lr.Fix 1E-4 in
-  let s0 = O.init ~f ~prms0 () in
-  let s = O.min ~lr s0 in
-  Printf.printf "\nfinal loss: %f\n" (O.fv s)
+  let s = O.init ~prms0 ~lr () in
+  let fv = O.min ~f s in
+  Printf.printf "\nfinal loss: %f\n" fv
+
+
+(* Alternativly, we can write our own optimization loop *)
+let () =
+  let s = O.init ~prms0 ~lr () in
+  let rec opt s =
+    match O.min_step ~f s with
+    | Stop fv -> fv
+    | Continue _ -> opt s
+  in
+  let fv = opt s in
+  Printf.printf "\nfinal loss: %f\n" fv

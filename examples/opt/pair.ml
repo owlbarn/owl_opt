@@ -12,7 +12,7 @@ let () =
     let a, b = Prms.unpack prms in
     Algodiff.D.Maths.(l2norm' (y - ((a *@ x) + b)))
   in
-  let lr = Owl_opt.Lr.Fix 1E-4 in
-  let s0 = O.init ~f ~prms0 () in
-  let s = O.min ~lr s0 in
-  Printf.printf "\nfinal loss: %f\n" (O.fv s)
+  let lr = Owl_opt.Lr.Fix 1E-2 in
+  let s = O.init ~lr ~prms0 () in
+  let fv = O.min ~f s in
+  Printf.printf "\nfinal loss: %f\n" fv

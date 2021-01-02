@@ -17,44 +17,48 @@ module type Sig = sig
   (** internal state *)
   type state
 
-  (** stopping criterion function type *)
-  type stop = state -> bool
+  (** optimization status *)
+  type status =
+    | Continue of float
+    | Stop of float
 
-  (** [iter s] returns the number of iterations for optimisation state [s] *)
+  (** stopping criterion function type *)
+  type stop = float -> state -> bool
+
+  (** [iter s] returns the current iteration number of state [s] *)
   val iter : state -> int
 
   (** [prms s] returns the optimisation parameters of state [s] *)
   val prms : state -> prms
 
-  (** [f s] returns the objective function of state [s] *)
-  val f : state -> f
+  (** [prev_fv s] returns the last objective function value of state [s] *)
+  val prev_fv : state -> float
 
-  (** [fv s] returns the objective function value of state [s] *)
-  val fv : state -> float
+  (** [fv_hist s] returns the history of the objective function values of state [s] up to the last objective function value (i.e., [prev_f s] is the same as [List.hd (fv_hist s)]) *)
+  val fv_hist : state -> float list
 
-  (** [init ~prms0 ~f ()] returns an initialises optimisation state for initial parmaters [prms0] and objective function [f] *)
-  val init : prms0:prms -> f:f -> unit -> state
-
-  (** [stop s] is the default stopping criterion, which prints out the iteration and objective function value at each optimisation iteration and terminates when the objective function value goes below 1E-4 *)
-  val stop : state -> bool
-
-  (** [min ?(stop=stop) ?(beta1=0.99) ?(beta2=0.999) ?(eps=1E-8) ~lr s] minimises f for optimisation state [s] using Adam. Once the stopping criterion is reached, the function returns the optimised state. The hyperparamters [beta1], [beta2], and [eps] are defined {{:https://arxiv.org/pdf/1412.6980.pdf}here}. *)
-  val min
-    :  ?stop:stop
-    -> ?beta1:float
+  (** [init ?(beta1=0.99) ?(beta2=0.999) ?(eps=1E-8) ~lr ~prms0 ()] initialises and returns optimisation state [s] with initial parmaters [prms0]. The hyperparamters [beta1], [beta2], and [eps] are defined {{:https://arxiv.org/pdf/1412.6980.pdf}here}. *)
+  val init
+    :  ?beta1:float
     -> ?beta2:float
     -> ?eps:float
     -> lr:Lr.t
-    -> state
+    -> prms0:prms
+    -> unit
     -> state
 
-  (** [max ?(stop=stop) ?(beta1=0.99) ?(beta2=0.999) ?(eps=1E-8) ~lr s] is similar to [min] but maximises f. *)
-  val max
-    :  ?stop:stop
-    -> ?beta1:float
-    -> ?beta2:float
-    -> ?eps:float
-    -> lr:Lr.t
-    -> state
-    -> state
+  (** [stop fv s] is the default stopping criterion, which prints out the iteration and objective function value at each optimisation iteration and terminates when the objective function value goes below 1E-4 *)
+  val stop : float -> state -> bool
+
+  (** [min_step ?(stop=stop) ~f s] computes the function value [fv] of optimization state [s] with parameters (i.e., [fv] = [f (iter s) (prms s)]). If the stopping criterion is reached (i.e. [stop fv s] is [true]), then return [Stop fv] and no optimization is performed. Otherwise, minizie [f] by updating the parameters of [s] one step (in place) according to Adam and returns [Continue fv]. Here, [stop fv s] is a callback function that can be used to specify the termination criterion and print out intermediate function values. *)
+  val min_step : ?stop:stop -> f:f -> state -> status
+
+  (** [max_step ?(stop=stop) ~f ~lr] is similar to [min_step] but maximises f. *)
+  val max_step : ?stop:stop -> f:f -> state -> status
+
+  (** [min ?(stop=stop) ~f status] iteratively minimises [f] using Adam until the stopping criterion is reached (i.e., [stop fv s] is true), then returns the final function value [fv]. See [min_step] for details on [stop]. *)
+  val min : ?stop:stop -> f:f -> state -> float
+
+  (** [max ?(stop=stop) ~f ~lr s] is similar to [min] but maximises f. *)
+  val max : ?stop:stop -> f:f -> state -> float
 end
