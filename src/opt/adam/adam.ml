@@ -25,7 +25,7 @@ struct
     ; lr : Lr.t
     }
 
-  type status =
+  type status = Status.t =
     | Continue of float
     | Stop of float
 
