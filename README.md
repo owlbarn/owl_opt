@@ -41,16 +41,13 @@ let prms0 = {a = Owl.Algodiff.D.Mat.gaussian 5 5; b = Owl.Algodiff.D.gaussian 5 
 let lr = Owl_opt.Lr.(Fix 1E-4) 
 
 (* initialise an optimisation session *)
-let s0 = O.init ~prms0 ~f () 
+let s = O.init ~prms0 ~beta1:0.99 ~beta2:0.999 ~lr () 
 
 (* define stopping criteria: stop when function value is smaller than 1E-4 *)
-let stop s = O.(fv s) < 1E-4
+let stop fv s = fv < 1E-4
 
-(* minimise objective function f *)
-let s = O.min ~stop ~beta1:0.99 ~beta2:0.999 ~lr s
-
-(* final objective function value *)
-let c = O.fv s
+(* minimise objective [f] and returns final function value *)
+let fv = O.min ~stop ~f s
 
 (* final prms *)
 let prms = O.prms s
