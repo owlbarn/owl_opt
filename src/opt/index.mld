@@ -10,9 +10,9 @@ The entry point of this library is {!module:Owl_opt}.
 + define an objective function [f] that takes as input your record type ['a t] 
 + define initial parameters [prms0]
 + define learning rates [lr] with {!module:Owl_opt.Lr}
-+ initialise optimisation state [s0] with [O.init ~prms0 ~f]
-+ define stoping criterion function [stop: state -> bool] 
-+ minimise the optimisation session with [O.min ~stop s0]
++ initialise optimisation state [s] with [O.init ~prms0 ()]
++ define stoping criterion function [stop: float -> state -> bool] 
++ minimise [f] for the optimisation session with [O.min ~stop ~f s]
 
 
 {2 Example} 
@@ -30,14 +30,12 @@ The entry point of this library is {!module:Owl_opt}.
  (* define fixed learning rate *)
  let lr = Owl_opt.Lr.(Fix 1E-4) 
  (* initialise an optimisation session *)
- let s0 = O.init ~prms0 ~f () 
+ let s = O.init ~prms0 ~beta1:0.99 ~beta2:0.999 ~lr () 
  (* define stopping criteria: stop when function value is smaller than 1E-4 *)
- let stop s = O.(fv s) < 1E-4
- (* minimise objective function f *)
- let s = O.min ~stop ~beta1:0.99 ~beta2:0.999 ~lr f
- (* final objective function value *)
- let c = O.fv s
- (* final prms *)
+ let stop fv s = fv < 1E-4
+ (* minimise [f] for session [s] and returns final loss *)
+ let fv = O.min ~f ~stop s
+ (* get optimized prms *)
  let prms = O.prms s 
 ]}
  
