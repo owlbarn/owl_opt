@@ -18,7 +18,7 @@ module type Sig = sig
   type state
 
   (** optimization status *)
-  type status =
+  type status = Status.t =
     | Continue of float
     | Stop of float
 
@@ -50,13 +50,13 @@ module type Sig = sig
   (** [stop fv s] is the default stopping criterion, which prints out the iteration and objective function value at each optimisation iteration and terminates when the objective function value goes below 1E-4 *)
   val stop : float -> state -> bool
 
-  (** [min_step ?(stop=stop) ~f s] computes the function value [fv] of optimization state [s] with parameters (i.e., [fv] = [f (iter s) (prms s)]). If the stopping criterion is reached (i.e. [stop fv s] is [true]), then return [Stop fv] and no optimization is performed. Otherwise, minizie [f] by updating the parameters of [s] one step (in place) according to Adam and returns [Continue fv]. Here, [stop fv s] is a callback function that can be used to specify the termination criterion and print out intermediate function values. *)
+  (** [min_step ?(stop=stop) ~f s] computes the function value [fv] of optimization state [s] with parameters (i.e., [f (iter s) (prms s)] returns [fv]). If the stopping criterion is reached (i.e. [stop fv s] is [true]), then return [Stop fv] and no optimization is performed. Otherwise, minizie [f] by updating the parameters of [s] one step (in place) according to Adam and returns [Continue fv]. Here, [stop fv s] is a callback function that can be used to specify the termination criterion and print out intermediate function values. *)
   val min_step : ?stop:stop -> f:f -> state -> status
 
   (** [max_step ?(stop=stop) ~f ~lr] is similar to [min_step] but maximises f. *)
   val max_step : ?stop:stop -> f:f -> state -> status
 
-  (** [min ?(stop=stop) ~f status] iteratively minimises [f] using Adam until the stopping criterion is reached (i.e., [stop fv s] is true), then returns the final function value [fv]. See [min_step] for details on [stop]. *)
+  (** [min ?(stop=stop) ~f status] iteratively minimises [f] using Adam until the stopping criterion is reached (i.e., [stop fv s] returns [true]), then returns the final function value [fv]. See [min_step] for details on [stop]. *)
   val min : ?stop:stop -> f:f -> state -> float
 
   (** [max ?(stop=stop) ~f ~lr s] is similar to [min] but maximises f. *)
