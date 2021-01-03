@@ -16,6 +16,11 @@ module Make (P : Owl_opt.Prms.PT) : sig
   (** internal state *)
   type state
 
+  (** status *)
+  type status =
+    | Stop of float
+    | Continue of float
+
   (** stopping criterion function type *)
   type stop = float -> state -> bool
 
@@ -31,24 +36,30 @@ module Make (P : Owl_opt.Prms.PT) : sig
   (** [fv_hist s] returns the history of the objective function values of state [s] up to the last objective function value (i.e., [prev_f s] is the same as [List.hd (fv_hist s)]) *)
   val fv_hist : state -> float list
 
-  (** [init ~prms0 ()] returns an initialises optimisation state for initial parmaters [prms0] *)
-  val init : prms0:prms -> unit -> state
+  (** [init ?corrections ~prms0 ()] returns an initialises optimisation state for initial parmaters [prms0] *)
+  val init : ?corrections:int -> prms0:prms -> unit -> state
 
-  val min
-    :  ?stop:stop
-    -> ?pgtol:float
-    -> ?factr:float
-    -> ?corrections:int
-    -> f:f
-    -> state
-    -> float
 
-  val max
-    :  ?stop:stop
-    -> ?pgtol:float
-    -> ?factr:float
-    -> ?corrections:int
-    -> f:f
-    -> state
-    -> float
+  (** [min ~f state] minimises [f] with respect to the state [s] 
+
+    @param factr tolerance in the termination test for the algorithm.
+    The iteration will stop when
+    [(f^k - f^{k+1})/max{ |f^k|, |f^{k+1}|, 1} <= factr*epsilon_float].
+    Set e.g. [factr] to [1e12] for low accuracy, [1e7] for moderate
+    accuracy and [1e1] for extremely high accuracy.  Setting [factr] to
+    [0.] suppresses this termination test.  Default: [1e7].
+
+    @param pgtol The iteration will stop when
+    [max{ |proj g_i| : i = 0,..., n-1} <= pgtol]
+    where [proj g_i] is the ith component of the projected gradient.
+    Setting [pgtol] to [0.] suppresses this termination test.
+    Default: [1e-5].
+
+    @param stop An user-provided stopping criterion that terminates the optimization
+    where [stop fv s] is [true].
+  *)
+  val min : ?pgtol:float -> ?factr:float -> ?stop:stop -> f:f -> state -> float
+
+  (** [max ~f state] is the same as [min], but maximises [f] *)
+  val max : ?pgtol:float -> ?factr:float -> ?stop:stop -> f:f -> state -> float
 end

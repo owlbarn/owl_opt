@@ -1,10 +1,11 @@
 open Base
 open Owl
 open Bigarray
+module AD = Algodiff.D
 
 module Make (P : Owl_opt.Prms.PT) = struct
-  type fv = Algodiff.D.t
-  type prm = Algodiff.D.t
+  type fv = AD.t
+  type prm = AD.t
   type prms = prm P.t
   type f = int -> prms -> fv
 
@@ -20,7 +21,7 @@ module Make (P : Owl_opt.Prms.PT) = struct
     let info =
       P.map
         ~f:(fun x ->
-          let open Algodiff.D in
+          let open AD in
           match x with
           | F _a ->
             let idx = !n_prms in
@@ -41,12 +42,12 @@ module Make (P : Owl_opt.Prms.PT) = struct
     P.map
       ~f:(fun (idx, l, s, adt) ->
         match adt with
-        | S -> Algodiff.D.pack_flt x.{idx}
+        | S -> AD.pack_flt x.{idx}
         | M ->
           Bigarray.Array1.sub x idx l
           |> Bigarray.genarray_of_array1
           |> (fun x -> Bigarray.reshape x s)
-          |> Algodiff.D.pack_arr)
+          |> AD.pack_arr)
       info
 
 
@@ -59,7 +60,7 @@ module Make (P : Owl_opt.Prms.PT) = struct
           Array1.sub dst idx l |> genarray_of_array1 |> fun x -> reshape x s)
         info
     in
-    let open Algodiff.D in
+    let open AD in
     P.iter2 src dst ~f:(fun a b ->
         match f a with
         | F x -> Genarray.set b [| 0 |] x
@@ -70,10 +71,15 @@ module Make (P : Owl_opt.Prms.PT) = struct
   type state =
     { mutable fv_hist : float list
     ; mutable k : int
+    ; work : Lbfgs.work
     ; ps : (float, float64_elt, c_layout) Array1.t
     ; n_prms : int
     ; info : info
     }
+
+  type status =
+    | Stop of float
+    | Continue of float
 
   type stop = float -> state -> bool
 
@@ -88,21 +94,22 @@ module Make (P : Owl_opt.Prms.PT) = struct
   let fv_hist s = List.rev s.fv_hist
   let prms s = extract s.info s.ps
 
-  let init ~prms0 () =
+  let init ?(corrections = 10) ~prms0 () =
     let n_prms, info = build_info prms0 in
-    let ps = reshape_1 Owl.Arr.(zeros [| 1; n_prms |]) n_prms in
-    blit Algodiff.D.primal info prms0 ps;
-    { ps; n_prms; fv_hist = []; info; k = 0 }
+    let ps = Array1.create float64 c_layout n_prms in
+    blit AD.primal info prms0 ps;
+    let work = Lbfgs.start ~corrections n_prms in
+    { ps; n_prms; fv_hist = []; info; k = 0; work }
 
 
   let f_df ~f s x g =
     let x = extract s.info x in
-    let t = Algodiff.D.tag () in
-    let x = P.map x ~f:(fun x -> Algodiff.D.make_reverse x t) in
+    let t = AD.tag () in
+    let x = P.map x ~f:(fun x -> AD.make_reverse x t) in
     let c = f s.k x in
-    Algodiff.D.reverse_prop (F 1.) c;
-    blit Algodiff.D.adjval s.info x g;
-    Algodiff.D.unpack_flt c
+    AD.reverse_prop (F 1.) c;
+    blit AD.adjval s.info x g;
+    AD.unpack_flt c
 
 
   let stop fv s =
@@ -110,30 +117,31 @@ module Make (P : Owl_opt.Prms.PT) = struct
     Float.(fv < 1E-3)
 
 
-  let optimise
-      update
-      ?(stop = stop)
-      ?(pgtol = 1E-5)
-      ?(factr = 1E7)
-      ?(corrections = 10)
-      ~f
-      s
-    =
-    let stop st =
-      let fv = Lbfgs.previous_f st in
-      s.k <- Lbfgs.iter st;
+  let step update ?(pgtol = 1E-5) ?(factr = 1E7) ?(stop = stop) ~f s gs =
+    let fv = f s.k (prms s) |> AD.unpack_flt in
+    if stop fv s
+    then Stop fv
+    else (
       s.fv_hist <- fv :: s.fv_hist;
-      stop fv s
+      match update ~pgtol ~factr ~work:s.work (f_df ~f s) s.ps gs with
+      | Lbfgs.Stop fv -> Stop fv
+      | Lbfgs.Continue fv ->
+        s.k <- Int.succ s.k;
+        Continue fv)
+
+
+  let lmin ~pgtol ~factr ~work f_df x g = Lbfgs.min ~pgtol ~factr ~work f_df x g
+  let lmax ~pgtol ~factr ~work f_df x g = Lbfgs.max ~pgtol ~factr ~work f_df x g
+
+  let optimise update ?(pgtol = 1E-5) ?(factr = 1E7) ?(stop = stop) ~f s =
+    Lbfgs.restart s.work;
+    let gs = Array1.create float64 c_layout s.n_prms in
+    let rec run () =
+      match step ~pgtol ~factr ~stop update ~f s gs with
+      | Stop fv -> fv
+      | Continue _ -> run ()
     in
-    update ~pgtol ~factr ~corrections ~stop (f_df ~f s) s.ps
-
-
-  let lmin ~pgtol ~factr ~corrections ~stop f_df ps =
-    Lbfgs.C.min ~print:Lbfgs.No ~pgtol ~factr ~corrections ~stop f_df ps
-
-
-  let lmax ~pgtol ~factr ~corrections ~stop f_df ps =
-    Lbfgs.C.max ~print:Lbfgs.No ~pgtol ~factr ~corrections ~stop f_df ps
+    run ()
 
 
   let min = optimise lmin

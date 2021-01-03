@@ -1,7 +1,11 @@
 (library
  (name owl_opt_lbfgs)
  (public_name owl-opt-lbfgs)
- (libraries owl lbfgs owl-opt))
+ (libraries owl bytes lbfgs.fortran owl-opt)
+ (flags :standard -w -9 -safe-string)
+ (foreign_stubs
+  (language c)
+  (names lbfgs_stubs)))
 
 (documentation
  (package owl-opt-lbfgs))
