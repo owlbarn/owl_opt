@@ -1,5 +1,4 @@
-open Owl
-module AD = Algodiff.D
+module AD = Owl.Algodiff.D
 
 module P = struct
   type 'a t =
@@ -10,7 +9,7 @@ module P = struct
 end
 
 open P
-module O = Owl_opt_lbfgs.Make (P)
+module O = Owl_opt_lbfgs.D.Make (P)
 
 let () =
   let x = AD.Mat.gaussian 3 1 in
@@ -19,7 +18,7 @@ let () =
   let y = AD.Maths.((a *@ x) + b) in
   let prms0 = { a = AD.Mat.gaussian 10 3; b = AD.Mat.gaussian 10 1 } in
   let f _ prms = AD.Maths.(l2norm' (y - ((prms.a *@ x) + prms.b))) in
-  let init_fv = (f 0 prms0 |> AD.unpack_flt)in
+  let init_fv = f 0 prms0 |> AD.unpack_flt in
   Printf.printf "initial: %1.10f\n%!" init_fv;
   let stop fv s =
     let i = O.iter s in
@@ -30,4 +29,4 @@ let () =
   let fv = O.min ~stop ~f s in
   assert (fv = (f O.(iter s) O.(prms s) |> AD.unpack_flt));
   assert (init_fv = List.hd (O.fv_hist s));
-  Printf.printf "final: %1.10f\n%!" fv 
+  Printf.printf "final: %1.10f\n%!" fv

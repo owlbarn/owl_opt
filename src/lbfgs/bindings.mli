@@ -81,7 +81,6 @@ type lbfgs_status =
     Setting [pgtol] to [0.] suppresses this termination test.
     Default: [1e-5].
 
-    @param nsteps maximum number of steps.  Default: no limitation.
     *)
 val min
   :  ?factr:float
@@ -122,7 +121,6 @@ val max
     recommended.  Default: [10].  This value in called [M] in L-BFGS-B
     debugging output. *)
 val start : ?corrections:int -> ?l:vec -> ?u:vec -> int -> work
-
 
 (** [restart state] restarts the L-BFGS-B optimization. *)
 val restart : work -> unit

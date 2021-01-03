@@ -19,7 +19,7 @@ let () =
   let y = Algodiff.D.Maths.((a *@ x) + b) in
   let prms0 = { a = Algodiff.D.Mat.gaussian 5 3; b = Algodiff.D.Mat.gaussian 5 1 } in
   let f _ prms = Algodiff.D.Maths.(l2norm' (y - ((prms.a *@ x) + prms.b))) in
-  let init_fv = (f 0 prms0 |> AD.unpack_flt)in
+  let init_fv = f 0 prms0 |> AD.unpack_flt in
   let lr = Owl_opt.Lr.Fix 1E-4 in
   let s = O.init ~lr ~beta:0.9 ~prms0 () in
   let fv = O.min ~f s in

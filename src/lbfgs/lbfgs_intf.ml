@@ -1,14 +1,15 @@
-open Owl
+module type Sig = sig
+  (** user-defined record type *)
+  type 'a t
 
-module Make (P : Owl_opt.Prms.PT) : sig
   (** objective function value type *)
-  type fv = Algodiff.D.t
+  type fv
 
   (** paramter type *)
-  type prm = Algodiff.D.t
+  type prm
 
   (** user-defined paramter record type *)
-  type prms = prm P.t
+  type prms = prm t
 
   (** objective function type *)
   type f = int -> prms -> fv
@@ -38,7 +39,6 @@ module Make (P : Owl_opt.Prms.PT) : sig
 
   (** [init ?corrections ~prms0 ()] returns an initialises optimisation state for initial parmaters [prms0] *)
   val init : ?corrections:int -> prms0:prms -> unit -> state
-
 
   (** [min ~f state] minimises [f] with respect to the state [s] 
 

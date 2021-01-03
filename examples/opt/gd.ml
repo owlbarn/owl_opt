@@ -20,7 +20,7 @@ let () =
   let prms0 = { a = AD.Mat.gaussian 5 3; b = AD.Mat.gaussian 5 1 } in
   let f _ prms = AD.Maths.(l2norm' (y - ((prms.a *@ x) + prms.b))) in
   let lr = Owl_opt.Lr.Fix 1E-4 in
-  let init_fv = (f 0 prms0 |> AD.unpack_flt)in
+  let init_fv = f 0 prms0 |> AD.unpack_flt in
   let s = O.init ~lr ~prms0 () in
   let stop fv s =
     let k = O.iter s in
