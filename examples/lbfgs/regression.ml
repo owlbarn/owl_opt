@@ -27,7 +27,4 @@ let () =
   in
   let s = O.init ~prms0 () in
   let fv = O.min ~stop ~f s in
-  Printf.printf
-    "final: %1.10f %1.10f\n%!"
-    fv
-    O.(fv_hist s |> List.rev |> List.hd)
+  Printf.printf "final: %1.10f %1.10f\n%!" fv O.(fv_hist s |> List.rev |> List.hd)
