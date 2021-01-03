@@ -1,3 +1,4 @@
+open Base
 open Owl
 open Bigarray
 
@@ -67,56 +68,64 @@ module Make (P : Owl_opt.Prms.PT) = struct
 
 
   type state =
-    { prms : prms
+    { mutable fv_hist : float list
+    ; mutable k : int
+    ; ps : (float, float64_elt, c_layout) Array1.t
     ; n_prms : int
-    ; f : f
-    ; fv : float
-    ; k : int
     ; info : info
     }
 
-  type stop = state -> bool
+  type stop = float -> state -> bool
 
   let iter s = s.k
-  let fv s = s.fv
-  let prms s = s.prms
-  let f s = s.f
 
-  let init ~prms0 ~f () =
-    let k = 0 in
-    let fv = f k prms0 |> Algodiff.D.unpack_flt in
+  let prev_fv s =
+    match List.hd s.fv_hist with
+    | Some fv -> fv
+    | None -> failwith "there has not been any function evaluations"
+
+
+  let fv_hist s = List.rev s.fv_hist
+  let prms s = extract s.info s.ps
+
+  let init ~prms0 () =
     let n_prms, info = build_info prms0 in
-    { prms = prms0; n_prms; fv; info; f; k }
+    let ps = reshape_1 Owl.Arr.(zeros [| 1; n_prms |]) n_prms in
+    blit Algodiff.D.primal info prms0 ps;
+    { ps; n_prms; fv_hist = []; info; k = 0 }
 
 
-  let f_df s x g =
+  let f_df ~f s x g =
     let x = extract s.info x in
     let t = Algodiff.D.tag () in
     let x = P.map x ~f:(fun x -> Algodiff.D.make_reverse x t) in
-    let c = s.f s.k x in
+    let c = f s.k x in
     Algodiff.D.reverse_prop (F 1.) c;
     blit Algodiff.D.adjval s.info x g;
     Algodiff.D.unpack_flt c
 
 
-  let stop s =
-    if s.k mod 10 = 0 then Printf.printf "\rstep: %i | loss: %4.9f%!" s.k s.fv;
-    s.fv < 1E-3
+  let stop fv s =
+    if s.k % 10 = 0 then Stdio.printf "\rstep: %i | loss: %4.9f%!" s.k fv;
+    Float.(fv < 1E-3)
 
 
-  let optimise update ?(stop = stop) ?(pgtol = 1E-5) ?(factr = 1E7) ?(corrections = 10) s =
-    let k = ref 0 in
-    let ps = reshape_1 Owl.Arr.(zeros [| 1; s.n_prms |]) s.n_prms in
+  let optimise
+      update
+      ?(stop = stop)
+      ?(pgtol = 1E-5)
+      ?(factr = 1E7)
+      ?(corrections = 10)
+      ~f
+      s
+    =
     let stop st =
       let fv = Lbfgs.previous_f st in
-      let prms = extract s.info ps in
-      k := Lbfgs.iter st;
-      stop { s with fv; k = !k; prms }
+      s.k <- Lbfgs.iter st;
+      s.fv_hist <- fv :: s.fv_hist;
+      stop fv s
     in
-    blit Algodiff.D.primal s.info s.prms ps;
-    let fv = update ~pgtol ~factr ~corrections ~stop (f_df s) ps in
-    let prms = extract s.info ps in
-    { s with fv; prms; k = !k + 1 }
+    update ~pgtol ~factr ~corrections ~stop (f_df ~f s) s.ps
 
 
   let lmin ~pgtol ~factr ~corrections ~stop f_df ps =

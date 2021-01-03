@@ -17,7 +17,7 @@ module Make (P : Owl_opt.Prms.PT) : sig
   type state
 
   (** stopping criterion function type *)
-  type stop = state -> bool
+  type stop = float -> state -> bool
 
   (** [iter s] returns the number of iterations for optimisation state [s] *)
   val iter : state -> int
@@ -25,28 +25,30 @@ module Make (P : Owl_opt.Prms.PT) : sig
   (** [prms s] returns the optimisation parameters of state [s] *)
   val prms : state -> prms
 
-  (** [fv s] returns the objective function value of state [s] *)
-  val fv : state -> float
+  (** [prev_fv s] returns the last objective function value of state [s] *)
+  val prev_fv : state -> float
 
-  (** [f s] returns the objective function of state [s] *)
-  val f : state -> f
+  (** [fv_hist s] returns the history of the objective function values of state [s] up to the last objective function value (i.e., [prev_f s] is the same as [List.hd (fv_hist s)]) *)
+  val fv_hist : state -> float list
 
-  (** [init ~prms0 ~f ()] returns an initialises optimisation state for initial parmaters [prms0] and objective function [f] *)
-  val init : prms0:prms -> f:f -> unit -> state
+  (** [init ~prms0 ()] returns an initialises optimisation state for initial parmaters [prms0] *)
+  val init : prms0:prms -> unit -> state
 
   val min
     :  ?stop:stop
     -> ?pgtol:float
     -> ?factr:float
     -> ?corrections:int
+    -> f:f
     -> state
-    -> state
+    -> float
 
   val max
     :  ?stop:stop
     -> ?pgtol:float
     -> ?factr:float
     -> ?corrections:int
+    -> f:f
     -> state
-    -> state
+    -> float
 end
