@@ -16,20 +16,23 @@ dune install]}
     type 'a t = {a: 'a; b: 'a} [@@deriving prms]
  end
  (* make an Lbfgs optimisation module for the parameter definition Prms *)
- module O = Owl_opt_lbfgs.Make (Prms)
+ module O = Owl_opt_lbfgs.D.Make (Prms)
  (* define the objective function *)
  let f _ prms = Owl.Algodiff.D.Maths.(l2norm' (y - ((prms.a *@ x) + prms.b))) 
  (* define initial parameters *)
  let prms0 = {a = Owl.Algodiff.D.Mat.gaussian 5 5; b = Owl.Algodiff.D.gaussian 5 1} 
  (* initialise an optimisation session *)
- let s0 = O.init ~prms0 ~f () 
+ let s = O.init ~prms0 () 
  (* define stopping criteria: stop when function value is smaller than 1E-4 *)
- let stop s = O.(fv s) < 1E-4
+ let stop fv s = fv < 1E-4
  (* minimise objective function f *)
- let s = O.min f
- (* final objective function value *)
- let c = O.fv s
+ let fv = O.min ~f s
  (* final prms *)
  let prms = O.prms s 
 ]}
  
+{2 Important modules }
+
+- Single-precision {!Owl_opt_lbfgs.S.Make}
+- Double-precision {!Owl_opt_lbfgs.D.Make}
+

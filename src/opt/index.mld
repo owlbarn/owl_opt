@@ -63,4 +63,6 @@ The entry point of this library is {!module:Owl_opt}.
 
 - Rmsprop {!Owl_opt.S.Rmsprop.Make}
 
+- Lbfgs (see {{:../owl-opt-lbfgs/index.html}Owl Opt Lbfgs})
+
  
