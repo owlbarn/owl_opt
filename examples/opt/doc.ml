@@ -24,4 +24,6 @@
  (* minimise [f] for session [s] and returns final loss *)
  let fv = O.min ~f ~stop s
  (* get optimized prms *)
- let prms = O.prms s 
+ let prms = O.prms s
+ (* get numeric solution *)
+ let solution = Prms.map ~f:Owl.Algodiff.D.unpack_arr prms

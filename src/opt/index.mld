@@ -45,6 +45,8 @@ The entry point of this library is {!module:Owl_opt}.
  let fv = O.min ~f ~stop s
  (* get optimized prms *)
  let prms = O.prms s
+ (* get numeric solution *)
+ let solution = Prms.map ~f:Owl.Algodiff.D.unpack_arr prms
 ]}
  
 {2 Important modules }

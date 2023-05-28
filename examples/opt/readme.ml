@@ -31,3 +31,6 @@ let fv = O.min ~stop ~f s
 
 (* final prms *)
 let prms = O.prms s
+
+(* get numeric solution *)
+let solution = Prms.map ~f:Owl.Algodiff.D.unpack_arr prms
