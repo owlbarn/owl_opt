@@ -106,11 +106,18 @@ struct
   let fv_hist s = List.rev s.fv_hist
   let prms s = extract s.info s.ps
 
-  let init ?(corrections = 10) ~prms0 () =
+  let init ?(corrections = 10) ?l ?u ~prms0 () =
     let n_prms, info = build_info prms0 in
     let ps = Array1.create float64 c_layout n_prms in
     blit AD.primal info prms0 ps;
-    let work = Bindings.start ~corrections n_prms in
+    let vec_of_bound prms_float =
+        let a1 = Array1.create float64 c_layout n_prms in
+        blit Fn.id info prms_float a1;
+        a1
+    in
+    let l = Option.map ~f:vec_of_bound l
+    and u = Option.map ~f:vec_of_bound u in
+    let work = Bindings.start ~corrections ?l ?u n_prms in
     { ps; n_prms; fv_hist = []; info; k = 0; work }
 
 
