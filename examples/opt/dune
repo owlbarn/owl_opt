@@ -1,5 +1,5 @@
 (tests
- (names gd adam rmsprop single pair)
+ (names gd adam rmsprop single pair doc readme)
  (libraries owl-opt owl)
  (preprocess
   (pps ppx-owl-opt)))

@@ -17,7 +17,7 @@ The entry point of this library is {!module:Owl_opt}.
 
 {2 Example} 
 
-{[
+{@ocaml file=mdx/doc.ml[
  module Prms = struct
     type 'a t = {a: 'a; b: 'a} [@@deriving prms]
  end
@@ -44,7 +44,7 @@ The entry point of this library is {!module:Owl_opt}.
  (* minimise [f] for session [s] and returns final loss *)
  let fv = O.min ~f ~stop s
  (* get optimized prms *)
- let prms = O.prms s 
+ let prms = O.prms s
 ]}
  
 {2 Important modules }

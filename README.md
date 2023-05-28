@@ -8,11 +8,13 @@ Please see the [documentation](https://ocaml.xyz/owl_opt).
 
 ## Installation
 ### Opam
+<!-- $MDX skip -->
 ```sh
 $ opam install owl-opt
 $ opam install owl-opt-lbfgs
 ```
 ### Manual
+<!-- $MDX skip -->
 ```sh
 $ dune build @install
 $ dune install
@@ -23,6 +25,7 @@ $ dune install
 The following code fragement solves a standard linear regression problem: find paramters `a` and `b` that minimises the l2 loss `sqrt((y-(a*x+b))^2)`. 
 The optimisation is carried out using Adam with hyperparameters `beta1=0.99` and `beta2=0.999`.
 
+<!-- $MDX file=examples/opt/readme.ml -->
 ```ocaml
 module Prms = struct
    type 'a t = {a: 'a; b: 'a} [@@deriving prms]

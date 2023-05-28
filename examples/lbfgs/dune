@@ -1,5 +1,5 @@
 (tests
- (names regression_s regression_d)
+ (names regression_s regression_d doc)
  (libraries owl-opt owl-opt-lbfgs owl)
  (preprocess
   (pps ppx-owl-opt)))

@@ -13,8 +13,9 @@ depends: [
   "ocaml" {>= "4.06.0"}
   "base"
   "stdio"
-  "dune" {>= "1.5.0"}
+  "dune" {>= "2.4.0"}
   "owl" {>= "0.6.0"}
   "ppx-owl-opt"
+  "mdx" { with-test }
 ]
 synopsis: "Owl's Optimisation Module"  

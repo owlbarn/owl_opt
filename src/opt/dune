@@ -4,6 +4,8 @@
 
 (copy_files# rmsprop/*)
 
+(mdx (files :standard - *.mld))
+
 (library
  (name owl_opt)
  (public_name owl-opt)
