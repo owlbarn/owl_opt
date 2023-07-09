@@ -1,17 +1,3 @@
-{1 Owl Opt LBFGS Library}
-
-The entry point of this library is {!module:Owl_opt_lbfgs}. The workflow is similar to that described in {{:../owl-opt/index.html} Owl Opt}. 
-
-This library is built ontop of {{:https://github.com/Chris00/L-BFGS-ocaml} L-BFGS-ocaml}.
-
-{2 Installation}
-{@sh skip[ 
-dune build @install
-dune install]}
-
-{2 Example} 
-
-{@ocaml file=mdx/doc.ml[
  module Prms = struct
     type 'a t = {a: 'a; b: 'a} [@@deriving prms]
  end
@@ -36,10 +22,3 @@ dune install]}
  let prms = O.prms s
  (* get numeric solution *)
  let solution = Prms.map ~f:Owl.Algodiff.D.unpack_arr prms
-]}
- 
-{2 Important modules }
-
-- Single-precision {!Owl_opt_lbfgs.S.Make}
-- Double-precision {!Owl_opt_lbfgs.D.Make}
-

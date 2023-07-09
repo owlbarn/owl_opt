@@ -7,5 +7,7 @@
   (language c)
   (names lbfgs_stubs)))
 
+(mdx (files :standard - *.mld))
+
 (documentation
  (package owl-opt-lbfgs))
