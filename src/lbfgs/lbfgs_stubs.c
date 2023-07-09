@@ -89,11 +89,11 @@ value ocaml_lbfgs_setulb(value vn, value vm, value vOFSx, value vx,
   setulb_(PTR_INT(n), PTR_INT(m),
           VEC_DATA_OFS(x), VEC_DATA_OFS(l), VEC_DATA_OFS(u), INT_VEC_DATA(nbd),
           &f, VEC_DATA(g), &factr, &pgtol, VEC_DATA(wa), INT_VEC_DATA(iwa),
-          String_val(vtask), /* shared content with OCaml */
-          PTR_INT(iprint), String_val(vcsave),
+          Bytes_val(vtask), /* shared content with OCaml */
+          PTR_INT(iprint), Bytes_val(vcsave),
           INT_VEC_DATA(lsave), INT_VEC_DATA(isave), VEC_DATA(dsave));
   /* The following allocates but we do not need Caml arguments anymore: */
-  return(copy_double(f));
+  return(caml_copy_double(f));
 }
 
 CAMLexport
