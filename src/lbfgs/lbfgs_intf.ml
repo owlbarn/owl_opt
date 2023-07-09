@@ -38,7 +38,7 @@ module type Sig = sig
   val fv_hist : state -> float list
 
   (** [init ?corrections ~prms0 ()] returns an initialises optimisation state for initial parmaters [prms0] *)
-  val init : ?corrections:int -> prms0:prms -> unit -> state
+  val init : ?corrections:int -> ?l:prms -> ?u:prms -> prms0:prms -> unit -> state
 
   (** [min ~f state] minimises [f] with respect to the state [s] 
 
