@@ -117,7 +117,7 @@ let restart w = set_start w.task
 let check_work n work =
   let corrections = work.corrections in
   if Array1.dim work.wa < wa_min_size n corrections
-     || Array1.dim work.iwa < 3 * corrections
+     || Array1.dim work.iwa < 3 * n
   then (
     let n_min =
       min (wa_n_of_size (Array1.dim work.wa) corrections) (Array1.dim work.iwa / 3)
